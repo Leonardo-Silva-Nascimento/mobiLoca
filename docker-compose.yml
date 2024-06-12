@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    volumes:
+      - .:/var/www/html
+    working_dir: /var/www/html
+    networks:
+      - laravel_network
+    depends_on:
+      - mysql
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=mobiloca
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    restart: unless-stopped
+
+  mysql:
+    image: 'mysql:5.7'
+    container_name: mysql_database
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - laravel_network
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mobiloca
+    restart: unless-stopped
+
+networks:
+  laravel_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
