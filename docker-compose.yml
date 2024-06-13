@@ -9,8 +9,6 @@ services:
     volumes:
       - .:/var/www/html
     working_dir: /var/www/html
-    networks:
-      - laravel_network
     depends_on:
       - mysql
     environment:
@@ -19,7 +17,9 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASSWORD=root
     restart: unless-stopped
-
+    ports:
+      - '80:80'  
+      
   mysql:
     image: 'mysql:5.7'
     container_name: mysql_database
@@ -27,16 +27,10 @@ services:
       - '3306:3306'
     volumes:
       - mysql_data:/var/lib/mysql
-    networks:
-      - laravel_network
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: mobiloca
     restart: unless-stopped
-
-networks:
-  laravel_network:
-    driver: bridge
 
 volumes:
   mysql_data:

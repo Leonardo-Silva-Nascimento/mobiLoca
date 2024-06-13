@@ -1,7 +1,7 @@
-# Use a imagem oficial do PHP como base
-FROM php:8.3-fpm
+# Use the official PHP with Apache image as the base
+FROM php:8.3-apache
 
-# Instale as dependências necessárias para o Laravel
+# Install the necessary dependencies for Laravel
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
@@ -9,31 +9,30 @@ RUN apt-get update && apt-get install -y \
     git \
     && docker-php-ext-install zip pdo_mysql
 
-# Instale o Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Enable the Apache rewrite module
+RUN a2enmod rewrite
 
-# Copie os arquivos do projeto para o contêiner
-COPY . /var/www/html
-
-# Defina o diretório de trabalho
+# Set the working directory
 WORKDIR /var/www/html
 
-# Instale as dependências do Composer
+# Set the correct permissions
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html
+
+# Copy the Laravel project files to the container
+COPY . .
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Install Laravel dependencies
 RUN composer install
 
-# Copie o arquivo de ambiente para o local correto
+# Copy the environment file
 RUN cp .env.example .env
 
-# Gere a chave de aplicativo do Laravel
-RUN php artisan key:generate
+RUN chmod -R 775 /var/www/html/storage 
+RUN chmod -R 775 /var/www/html/bootstrap/cache
 
-# Defina as permissões corretas
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
-
-# Exponha a porta 80 para o servidor web
+# Expose port 80
 EXPOSE 80
-
-# Execute o servidor PHP-FPM
-CMD ["php-fpm"]
